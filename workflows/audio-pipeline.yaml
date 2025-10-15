@@ -1,0 +1,38 @@
+name: audio-pipeline
+on:
+  http:
+    - path: /api/workflows/audio-pipeline
+      method: POST
+
+jobs:
+  persist-artifacts:
+    steps:
+      - name: validate
+        uses: core/function
+        with:
+          function: |
+            export default async (ctx) => {
+              const body = await ctx.request.json();
+              if (!body?.sessionId || !body?.summary || !body?.musicXML) {
+                return new Response("Bad Request", { status: 400 });
+              }
+              return new Response(JSON.stringify({ ok: true, received: Object.keys(body) }), { status: 200 });
+            }
+
+      - name: save-to-r2
+        uses: core/r2-put
+        with:
+          bucket: BUCKET
+          key: ${{ "scores/" + inputs.sessionId + "/" + Date.now() + ".musicxml" }}
+          body: ${{ inputs.musicXML }}
+          httpMetadata:
+            contentType: application/vnd.recordare.musicxml+xml
+
+      - name: save-summary
+        uses: core/r2-put
+        with:
+          bucket: BUCKET
+          key: ${{ "summaries/" + inputs.sessionId + "/" + Date.now() + ".json" }}
+          body: ${{ JSON.stringify(inputs.summary) }}
+          httpMetadata:
+            contentType: application/json

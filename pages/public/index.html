@@ -1,0 +1,209 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>REVERIE AI • Turn any song into sheet music</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="stylesheet" href="./styles.css"/>
+  <script>
+    // Polyfill for CommonJS exports in browser
+    if (typeof exports === 'undefined') {
+      window.exports = {};
+    }
+  </script>
+  <!-- Audio conversion with FFmpeg.wasm + Web Audio API fallback -->
+  <script src="./libs/opensheetmusicdisplay.min.js"></script>
+  <script src="./libs/vexflow.min.js"></script>
+  <script src="./libs/tonal.min.js"></script>
+  <script defer src="./libs/essentia-wasm.js"></script>
+  <script defer src="./libs/crepe-wasm.js"></script>
+</head>
+<body>
+  <header>
+    <h1>REVERIE AI</h1>
+    <p>Turn any song into sheet music</p>
+  </header>
+
+  <div class="main-container">
+    <!-- Left Panel: Integrated Design -->
+    <div class="left-panel">
+      <div class="content-card">
+        <!-- How It Works Section -->
+        <div class="how-it-works-section">
+          <div class="icon-container">
+            <div class="music-icon">♪♫</div>
+          </div>
+          <h2>How It Works</h2>
+          <p class="subtitle">Transform your favorite songs in minutes</p>
+          
+          <div class="steps-list">
+            <div class="step-item">
+              <span class="step-number">1</span>
+              <div class="step-content">
+                <strong>Upload an MP3 file:</strong> Choose any song you'd like to convert into sheet music
+              </div>
+            </div>
+            <div class="step-item">
+              <span class="step-number">2</span>
+              <div class="step-content">
+                <strong>AI separates the audio:</strong> The app isolates vocals, drums, bass, and instruments, then converts the instrumental stem into a MIDI file
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Selection Section -->
+        <div class="file-selection-section">
+          <input id="file" type="file" accept="audio/mpeg,audio/mp3" style="display: none;"/>
+          <button id="selectFile" class="file-select-button">
+            <span class="file-icon">📁</span>
+            <span class="file-text">Select MP3 File</span>
+          </button>
+          <div id="fileInfo" class="file-info" style="display: none;">
+            <span id="fileName"></span>
+            <button id="analyze" class="analyze-button">Analyze</button>
+          </div>
+          <button id="save" class="save-button" disabled style="display: none;">Save</button>
+        </div>
+
+        <!-- AI Chat Section -->
+        <div class="chat-section">
+          <div class="chat-header">
+            <h4>AI Assistant</h4>
+          </div>
+          <div id="chatlog" class="chat-log"></div>
+          <div class="chat-input-container">
+            <textarea id="msg" placeholder="Ask about key, tempo, difficulty… or say 'transpose to G major'"></textarea>
+            <div class="chat-buttons">
+              <button id="send">Send</button>
+              <button id="transposeDemo">Transpose +2</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Tabbed Data Display -->
+    <div class="right-panel">
+      <div class="data-container">
+        <div class="tab-header">
+          <button class="tab-button active" data-tab="sheet-music">
+            <span class="tab-icon">🎼</span>
+            <span class="tab-text">Sheet Music</span>
+          </button>
+          <button class="tab-button" data-tab="lyrics">
+            <span class="tab-icon">🎤</span>
+            <span class="tab-text">Lyrics</span>
+          </button>
+          <button class="tab-button" data-tab="chords">
+            <span class="tab-icon">🎹</span>
+            <span class="tab-text">Chords</span>
+          </button>
+          <button class="tab-button" data-tab="analysis">
+            <span class="tab-icon">📊</span>
+            <span class="tab-text">Analysis</span>
+          </button>
+        </div>
+        
+        <div class="tab-content">
+          <!-- Sheet Music Tab -->
+          <div id="sheet-music-tab" class="tab-panel active">
+            <div id="score" class="score-display"></div>
+          </div>
+          
+          <!-- Lyrics Tab -->
+          <div id="lyrics-tab" class="tab-panel">
+            <div class="lyrics-content">
+              <div class="lyrics-placeholder">
+                <div class="placeholder-icon">🎤</div>
+                <p>Lyrics will appear here after transcription</p>
+              </div>
+              <div id="lyrics-text" class="lyrics-text" style="display: none;"></div>
+            </div>
+          </div>
+          
+          <!-- Chords Tab -->
+          <div id="chords-tab" class="tab-panel">
+            <div class="chords-content">
+              <div class="chords-placeholder">
+                <div class="placeholder-icon">🎹</div>
+                <p>Chord progression will appear here</p>
+              </div>
+              <div id="chords-display" class="chords-display" style="display: none;"></div>
+            </div>
+          </div>
+          
+          <!-- Analysis Tab -->
+          <div id="analysis-tab" class="tab-panel">
+            <div class="analysis-content">
+              <div class="analysis-placeholder">
+                <div class="placeholder-icon">📊</div>
+                <p>Musical analysis data will appear here</p>
+              </div>
+              <div id="analysis-data" class="analysis-data" style="display: none;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Button -->
+  <div class="help-button">
+    <button id="helpBtn">?</button>
+  </div>
+
+  <!-- ✅ Universal FFmpeg.wasm loader (local copy) -->
+  <script src="./libs/ffmpeg.js" 
+          onerror="console.error('❌ Failed to load FFmpeg.wasm script locally')"
+          onload="console.log('✅ FFmpeg.wasm script loaded locally')"></script>
+  <script>
+    window.addEventListener("load", async () => {
+      try {
+        console.log("🔍 Checking for FFmpeg.wasm after page load...");
+        
+        // Detect which global FFmpeg object was exported by the CDN bundle
+        const FFmpegGlobal =
+          window.FFmpeg || window.FFmpegWASM || window.ffmpeg || null;
+
+        if (!FFmpegGlobal) {
+          console.error("❌ FFmpeg.wasm not found after script load.");
+          console.log("Available globals:", Object.keys(window).filter(k => k.toLowerCase().includes('ffmpeg')));
+          console.log("All globals:", Object.keys(window).slice(0, 20)); // First 20 globals for debugging
+          return;
+        }
+
+        console.log("✅ Found FFmpeg global:", FFmpegGlobal);
+
+        // Destructure helpers safely
+        const { createFFmpeg, fetchFile } = FFmpegGlobal;
+        if (typeof createFFmpeg !== "function") {
+          console.error("❌ createFFmpeg() not available in FFmpeg global:", FFmpegGlobal);
+          console.log("Available properties:", Object.keys(FFmpegGlobal));
+          return;
+        }
+
+        console.log("✅ createFFmpeg function found");
+
+        // Create and preload FFmpeg instance
+        const ffmpeg = createFFmpeg({ 
+          log: true,
+          corePath: './libs/ffmpeg-core.js'
+        });
+        window.ffmpeg = ffmpeg;
+        window.createFFmpeg = createFFmpeg;
+        window.fetchFile = fetchFile;
+
+        console.log("⏳ Loading FFmpeg.wasm...");
+        await ffmpeg.load();
+        console.log("✅ FFmpeg.wasm successfully loaded and ready!");
+      } catch (err) {
+        console.error("❌ FFmpeg.wasm preload failed:", err);
+        console.log("Error details:", err.message);
+        console.log("Stack trace:", err.stack);
+      }
+    });
+  </script>
+  <script src="./app.js"></script>
+</body>
+</html>
