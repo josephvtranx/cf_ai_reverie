@@ -1,17 +1,17 @@
-# 🎵 Reverie - AI Music Analysis Tool
+#  Reverie - AI Music Analysis Tool
 
 **Reverie** is an AI-powered music web application built on Cloudflare Workers that analyzes MP3 files, extracts musical notes, renders sheet music, and provides interactive AI-powered music assistance.
 
 ## ✨ Features
 
-- **🎧 MP3 Upload & Analysis**: Upload MP3 files and extract musical notes using WebAssembly audio processing
-- **🎼 Sheet Music Rendering**: Generate and display MusicXML sheet music in real-time
-- **🤖 AI Chat Interface**: Chat with Llama 3.1 AI model about your music (key, difficulty, structure)
-- **🔄 Music Transposition**: Request AI-powered or deterministic transpositions
-- **💾 Persistent Sessions**: Per-user memory and state management with Durable Objects
-- **☁️ Cloud Storage**: Store generated MusicXML files and summaries in R2
+- ** MP3 Upload & Analysis**: Upload MP3 files and extract musical notes using WebAssembly audio processing
+- ** Sheet Music Rendering**: Generate and display MusicXML sheet music in real-time
+- ** AI Chat Interface**: Chat with Llama 3.1 AI model about your music (key, difficulty, structure)
+- ** Music Transposition**: Request AI-powered or deterministic transpositions
+- ** Persistent Sessions**: Per-user memory and state management with Durable Objects
+- ** Cloud Storage**: Store generated MusicXML files and summaries in R2
 
-## 🏗️ Architecture
+## Architecture
 
 ### Frontend
 - **Cloudflare Pages** with vanilla JavaScript
@@ -25,7 +25,7 @@
 - **KV Store** for caching
 - **Workers AI** with Llama 3.1 for music analysis
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 - Node.js 18+
@@ -135,11 +135,11 @@ The app includes placeholder files for:
 
 **Note**: Replace placeholder files with actual library files for production use.
 
-## 📝 License
+##  License
 
 MIT License - see LICENSE file for details.
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -147,7 +147,7 @@ MIT License - see LICENSE file for details.
 4. Test locally with `npm run dev`
 5. Submit a pull request
 
-## 📞 Support
+##  Support
 
 For issues and questions:
 - Check the [Issues](https://github.com/your-repo/issues) page
