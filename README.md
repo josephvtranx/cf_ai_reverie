@@ -2,7 +2,7 @@
 
 **Reverie** is an AI-powered music web application built on Cloudflare Workers that analyzes MP3 files, extracts musical notes, renders sheet music, and provides interactive AI-powered music assistance.
 
-## ✨ Features
+##  Features
 
 - ** MP3 Upload & Analysis**: Upload MP3 files and extract musical notes using WebAssembly audio processing
 - ** Sheet Music Rendering**: Generate and display MusicXML sheet music in real-time
